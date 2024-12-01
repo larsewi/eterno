@@ -17,8 +17,19 @@ find_package(SDL3 REQUIRED)
 # Add the include directory to your project
 include_directories(${RSYNC_INCLUDE_DIR})
 
+# List sources
+set(SOURCES
+    src/main.c
+    src/utils.c
+    src/logger.c
+    src/game.c
+    src/input_handler.c
+    src/game_object.c
+    src/player.c
+)
+
 # Add your executable or library
-add_executable(eterno src/main.c src/utils.c src/logger.c src/game.c src/input_handler.c)
+add_executable(eterno ${SOURCES})
 
 # Link SDL3 to your target
 target_link_libraries(eterno PRIVATE SDL3::SDL3)
