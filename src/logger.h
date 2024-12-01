@@ -5,6 +5,7 @@
 
 enum LogLevel {
   LOG_LEVEL_DEBUG,
+  LOG_LEVEL_INFO,
   LOG_LEVEL_WARNING,
   LOG_LEVEL_ERROR,
   LOG_LEVEL_CRITICAL,
@@ -12,6 +13,9 @@ enum LogLevel {
 
 #define LOG_DEBUG(...)                                                         \
   LogMessage(LOG_LEVEL_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
+
+#define LOG_INFO(...)                                                          \
+  LogMessage(LOG_LEVEL_INFO, __FILE__, __LINE__, __VA_ARGS__)
 
 #define LOG_WARNING(...)                                                       \
   LogMessage(LOG_LEVEL_WARNING, __FILE__, __LINE__, __VA_ARGS__)

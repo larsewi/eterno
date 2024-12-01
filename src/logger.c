@@ -1,9 +1,13 @@
 #include "logger.h"
+#include "config.h"
+#include "utils.h"
 
 #include <assert.h>
+#include <libgen.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 static bool LOGGER_LOG_DEBUG = false;
 
@@ -32,18 +36,26 @@ void LogMessage(enum LogLevel level, const char *file, const int line,
   }
   va_end(ap);
 
+  /* Get basename of file path. */
+  char buf[PATH_MAX];
+  strncpy(buf, file, sizeof(buf));
+  char *bname = basename(buf);
+
   switch (level) {
   case LOG_LEVEL_DEBUG:
-    fprintf(stdout, "[DBG][%s:%d]: %s\n", file, line, message);
+    fprintf(stdout, "<dbg>  %s:%d  %s\n", bname, line, message);
+    break;
+  case LOG_LEVEL_INFO:
+    fprintf(stdout, "<inf>  %s\n", message);
     break;
   case LOG_LEVEL_WARNING:
-    fprintf(stdout, "[WRN]: %s\n", message);
+    fprintf(stdout, "<wrn>  %s\n", message);
     break;
   case LOG_LEVEL_ERROR:
-    fprintf(stderr, "[ERR]: %s\n", message);
+    fprintf(stderr, "<err>  %s:%d  %s\n", bname, line, message);
     break;
   case LOG_LEVEL_CRITICAL:
-    fprintf(stderr, "[CRT][%s:%d]: %s: ", file, line, message);
+    fprintf(stderr, "<crt>  %s:%d  %s\n", bname, line, message);
     abort(); /* It's not safe to proceed */
   }
 }

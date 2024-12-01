@@ -19,14 +19,14 @@ Game *GameInit(const char *title, int xpos, int ypos, int width, int height,
   Game *game = xmalloc(sizeof(Game));
   memset(game, 0, sizeof(Game));
 
-  LOG_DEBUG("Initializing subsystems...");
+  LOG_DEBUG("Initializing subsystems");
   if (!SDL_Init(SDL_INIT_VIDEO)) {
     LOG_ERROR("Failed to initialize subsystems: %s", SDL_GetError());
     GameDestroy(game);
     return NULL;
   }
 
-  LOG_DEBUG("Creating window...");
+  LOG_DEBUG("Creating window");
   int flags = fullscreen ? SDL_WINDOW_FULLSCREEN : 0;
   game->window = SDL_CreateWindow(title, width, height, flags);
   if (game->window == NULL) {
@@ -35,7 +35,7 @@ Game *GameInit(const char *title, int xpos, int ypos, int width, int height,
     return NULL;
   }
 
-  LOG_DEBUG("Creating renderer...");
+  LOG_DEBUG("Creating renderer");
   game->renderer = SDL_CreateRenderer(game->window, NULL);
   if (game->renderer == NULL) {
     LOG_ERROR("Failed to create renderer: %s", SDL_GetError());
@@ -56,12 +56,12 @@ void GameDestroy(void *ptr) {
     return;
   }
 
-  LOG_DEBUG("Destroying renderer...");
+  LOG_DEBUG("Destroying renderer");
   SDL_DestroyRenderer(game->renderer);
 
-  LOG_DEBUG("Destroying window...");
+  LOG_DEBUG("Destroying window");
   SDL_DestroyWindow(game->window);
 
-  LOG_DEBUG("Shutting down subsystems...");
+  LOG_DEBUG("Shutting down subsystems");
   SDL_Quit();
 }
