@@ -18,7 +18,7 @@ find_package(SDL3 REQUIRED)
 include_directories(${RSYNC_INCLUDE_DIR})
 
 # Add your executable or library
-add_executable(eterno src/main.c src/utils.c src/logger.c src/game.c)
+add_executable(eterno src/main.c src/utils.c src/logger.c src/game.c src/input_handler.c)
 
 # Link SDL3 to your target
 target_link_libraries(eterno PRIVATE SDL3::SDL3)

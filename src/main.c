@@ -12,6 +12,8 @@
 #define GAME_TITLE "Eterno"
 #define WINDOW_WIDTH 720
 #define WINDOW_HEIGHT 480
+#define FPS 60
+#define DELAY_TIME (1000.0f / FPS)
 
 static const struct option LONG_OPTIONS[] = {
     {"debug", no_argument, NULL, 'd'},
@@ -63,7 +65,7 @@ int main(int argc, char *argv[]) {
       return EXIT_SUCCESS;
 
     case '?':
-      // Error already printed by getopt_long(3)
+      /* Error already printed by getopt_long(3) */
       return EXIT_FAILURE;
 
     default:
@@ -73,7 +75,22 @@ int main(int argc, char *argv[]) {
 
   Game *game = GameInit(GAME_TITLE, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, false);
   if (game == NULL) {
+    /* Error is already logged */
     return EXIT_FAILURE;
+  }
+
+  Uint64 frame_start;
+  while (GameIsRunning(game)) {
+    frame_start = SDL_GetTicks();
+
+    GameHandleEvents(game);
+    GameUpdate(game);
+    GameRender(game);
+
+    uint64_t frame_time = SDL_GetTicks() - frame_start;
+    if (frame_time < DELAY_TIME) {
+      SDL_Delay((Uint32)(DELAY_TIME - frame_time));
+    }
   }
 
   GameDestroy(game);

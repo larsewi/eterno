@@ -8,6 +8,14 @@ typedef struct Game Game;
 Game *GameInit(const char *title, int xpos, int ypos, int width, int height,
                bool fullscreen);
 
-void GameDestroy(void *game);
+bool GameIsRunning(Game *game);
+
+void GameHandleEvents(Game *game);
+
+void GameUpdate(Game *game);
+
+void GameRender(Game *game);
+
+void GameDestroy(Game *game);
 
 #endif /* __ETERNO_GAME_H__ */
