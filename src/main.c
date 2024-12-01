@@ -27,7 +27,7 @@ static const char *const DESCRIPTIONS[] = {
 static void PrintHelp(const char *prog) {
   printf("%s %s: %s\n\n", PACKAGE_NAME, PACKAGE_VERSION, PACKAGE_DESCRIPTION);
 
-  printf("Usage: %s [OPTIONS] SOURCE\n\n", prog);
+  printf("Usage: %s [OPTIONS]\n\n", prog);
 
   size_t longest = 0;
   for (int i = 0; LONG_OPTIONS[i].val != 0; i++) {
