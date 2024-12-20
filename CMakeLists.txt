@@ -25,6 +25,9 @@ set(SOURCES
     src/game.c
     src/game_object.c
     src/player.c
+    src/buffer.c
+    src/list.c
+    src/dict.c
 )
 
 # Set compile options

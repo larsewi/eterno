@@ -41,7 +41,8 @@ static void PrintHelp(const char *prog) {
   }
 
   char format[64];
-  NDEBUG_UNUSED int ret = snprintf(format, sizeof(format), "  --%%-%zus    %%s\n", longest);
+  NDEBUG_UNUSED int ret =
+      snprintf(format, sizeof(format), "  --%%-%zus    %%s\n", longest);
   assert(ret >= 0 && (size_t)ret < sizeof(format));
 
   printf("OPTIONS:\n");

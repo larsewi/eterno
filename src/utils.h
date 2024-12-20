@@ -3,6 +3,7 @@
 
 #include <limits.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifndef PATH_MAX
 #define PATH_MAX 4096
@@ -23,6 +24,8 @@
 #else
 #define NDEBUG_UNUSED
 #endif
+
+#define StringEqual(a, b) (strcmp(a, b) == 0)
 
 /**
  * @brief Allocate memory using malloc(3). On error, print error message and
