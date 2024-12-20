@@ -20,7 +20,6 @@ include_directories(${RSYNC_INCLUDE_DIR})
 # List sources
 set(SOURCES
     src/main.c
-    src/utils.c
     src/logger.c
     src/game.c
     src/game_object.c

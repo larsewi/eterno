@@ -45,11 +45,7 @@ List *ListCreate(void) {
   List *list = xmalloc(sizeof(List));
   list->length = 0;
   list->capacity = DEFAULT_LIST_CAPACITY;
-  list->buffer = calloc(list->capacity, sizeof(Element *));
-  if (list->buffer == NULL) {
-    LOG_CRITICAL("calloc(3): Failed to allocate memory: %s", strerror(errno));
-  }
-
+  list->buffer = xcalloc(list->capacity, sizeof(Element *));
   return list;
 }
 

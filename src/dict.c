@@ -82,10 +82,7 @@ static void EnsureCapacity(Dict *const dict) {
       DEFAULT_DICT_MIN_LOAD_FACTOR;
 
   const size_t new_capacity = (expand) ? dict->capacity * 2 : dict->capacity;
-  Entry **const new_buffer = (Entry **)calloc(new_capacity, sizeof(Entry *));
-  if (new_buffer == NULL) {
-    LOG_CRITICAL("calloc(3): Failed to allocate memory: %s", strerror(errno));
-  }
+  Entry **const new_buffer = xcalloc(new_capacity, sizeof(Entry *));
 
   Entry **const old_buffer = dict->buffer;
   dict->buffer = new_buffer;
@@ -116,12 +113,7 @@ Dict *DictCreate(void) {
   Dict *dict = xmalloc(sizeof(Dict));
   dict->length = dict->in_use = 0;
   dict->capacity = DEFAULT_DICT_CAPACITY;
-  dict->buffer = (Entry **)calloc(dict->capacity, sizeof(Entry *));
-
-  if (dict->buffer == NULL) {
-    LOG_CRITICAL("calloc(3): Failed to allocate memory: %s", strerror(errno));
-  }
-
+  dict->buffer = xcalloc(dict->capacity, sizeof(Entry *));
   return dict;
 }
 
