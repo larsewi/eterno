@@ -23,7 +23,6 @@ set(SOURCES
     src/utils.c
     src/logger.c
     src/game.c
-    src/input_handler.c
     src/game_object.c
     src/player.c
 )

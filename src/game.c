@@ -1,6 +1,5 @@
 #include "game.h"
 #include "config.h"
-#include "input_handler.h"
 #include "logger.h"
 #include "player.h"
 #include "utils.h"
@@ -13,7 +12,6 @@ struct Game {
   bool running;
   SDL_Window *window;
   SDL_Renderer *renderer;
-  InputHandler *input_handler;
   GameObject *player;
 };
 
@@ -49,14 +47,6 @@ Game *GameInit(const char *title, int xpos, int ypos, int width, int height,
     return NULL;
   }
 
-  LOG_DEBUG("Initializing input handler");
-  game->input_handler = InputHandlerInit();
-  if (game->input_handler == NULL) {
-    LOG_ERROR("Failed to initialize input handler");
-    GameDestroy(game);
-    return NULL;
-  }
-
   LOG_DEBUG("Creating player");
   game->player = PlayerCreate();
 
@@ -72,34 +62,53 @@ bool GameIsRunning(Game *game) {
 
 void GameHandleEvents(Game *game) {
   assert(game != NULL);
-  InputHandlerHandleEvents(game->input_handler);
+
+  bool window_resized = false;
+  SDL_Event event;
+  while (SDL_PollEvent(&event)) {
+    switch (event.type) {
+    case SDL_EVENT_QUIT:
+      game->running = false;
+      break;
+    case SDL_EVENT_WINDOW_RESIZED:
+      window_resized = true;
+      break;
+    default:
+      break;
+    }
+  }
+
+  if (window_resized) {
+    int width, height;
+    if (SDL_GetWindowSize(game->window, &width, &height)) {
+      LOG_DEBUG("Window resized (w: %d, h: %d)", width, height);
+    } else {
+      LOG_ERROR("Failed to get window size: %s", SDL_GetError());
+    }
+  }
 }
 
 void GameUpdate(Game *game) {
   assert(game != NULL);
-  if (InputHandlerGameShouldQuit(game->input_handler)) {
-    game->running = false;
-  }
-
-  GameObjectUpdate(game->player);
+  GameObjectUpdate(game->player, game->renderer);
 }
 
 void GameRender(Game *game) {
   assert(game != NULL);
 
   if (!SDL_SetRenderDrawColor(game->renderer, 0x0, 0x0, 0x0, 0xFF)) {
-    LOG_WARNING("Failed to set draw color: %s", SDL_GetError());
+    LOG_ERROR("Failed to set draw color: %s", SDL_GetError());
   }
 
   if (!SDL_RenderClear(game->renderer)) {
-    LOG_WARNING("Failed to clear the current rendering target: %s",
-                SDL_GetError());
+    LOG_ERROR("Failed to clear the current rendering target: %s",
+              SDL_GetError());
   }
 
   GameObjectDraw(game->player, game->renderer);
 
   if (!SDL_RenderPresent(game->renderer)) {
-    LOG_WARNING("Failed update screen with rendering: %s", SDL_GetError());
+    LOG_ERROR("Failed update screen with rendering: %s", SDL_GetError());
   }
 }
 
@@ -109,9 +118,6 @@ void GameDestroy(Game *game) {
   }
 
   GameObjectDestroy(game->player);
-
-  LOG_DEBUG("Destroying input handler");
-  InputHandlerDestroy(game->input_handler);
 
   LOG_DEBUG("Destroying renderer");
   SDL_DestroyRenderer(game->renderer);

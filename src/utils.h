@@ -8,6 +8,9 @@
 #define PATH_MAX 4096
 #endif /* PATH_MAX */
 
+#define MIN(a, b) (a <= b ? a : b)
+#define MAX(a, b) (a >= b ? a : b)
+
 /**
  * @brief Allocate memory using malloc(3). On error, print error message and
  *        abort(3).
