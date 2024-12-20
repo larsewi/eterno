@@ -15,9 +15,8 @@ struct Game {
   GameObject *player;
 };
 
-Game *GameInit(const char *title, int xpos, int ypos, int width, int height,
-               bool fullscreen) {
-  Game *ret = NULL;
+Game *GameInit(const char *title, int width, int height, bool fullscreen) {
+  assert(title != NULL);
 
   Game *game = xmalloc(sizeof(Game));
   memset(game, 0, sizeof(Game));

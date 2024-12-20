@@ -27,6 +27,9 @@ set(SOURCES
     src/player.c
 )
 
+# Set compile options
+add_compile_options(-Wall -Wextra -Werror)
+
 # Add your executable or library
 add_executable(eterno ${SOURCES})
 

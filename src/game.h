@@ -5,8 +5,7 @@
 
 typedef struct Game Game;
 
-Game *GameInit(const char *title, int xpos, int ypos, int width, int height,
-               bool fullscreen);
+Game *GameInit(const char *title, int width, int height, bool fullscreen);
 
 bool GameIsRunning(Game *game);
 

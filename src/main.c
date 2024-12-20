@@ -8,6 +8,7 @@
 
 #include "game.h"
 #include "logger.h"
+#include "utils.h"
 
 #define GAME_TITLE "Eterno"
 #define WINDOW_WIDTH 720
@@ -40,7 +41,7 @@ static void PrintHelp(const char *prog) {
   }
 
   char format[64];
-  int ret = snprintf(format, sizeof(format), "  --%%-%zus    %%s\n", longest);
+  NDEBUG_UNUSED int ret = snprintf(format, sizeof(format), "  --%%-%zus    %%s\n", longest);
   assert(ret >= 0 && (size_t)ret < sizeof(format));
 
   printf("OPTIONS:\n");
@@ -73,7 +74,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  Game *game = GameInit(GAME_TITLE, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, false);
+  Game *game = GameInit(GAME_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, false);
   if (game == NULL) {
     /* Error is already logged */
     return EXIT_FAILURE;
