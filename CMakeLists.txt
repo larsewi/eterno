@@ -14,8 +14,8 @@ configure_file(
 # Find SDL3 package
 find_package(SDL3 REQUIRED)
 
-# Add the include directory to your project
-include_directories(${RSYNC_INCLUDE_DIR})
+# Find SDL3_image package
+find_package(SDL3_image REQUIRED)
 
 # List sources
 set(SOURCES
@@ -36,4 +36,4 @@ add_compile_options(-Wall -Wextra -Werror)
 add_executable(eterno ${SOURCES})
 
 # Link SDL3 to your target
-target_link_libraries(eterno PRIVATE SDL3::SDL3)
+target_link_libraries(eterno PRIVATE SDL3::SDL3 SDL3_image::SDL3_image)

@@ -7,7 +7,6 @@
 
 typedef struct GameObject GameObject;
 
-typedef void (*GameObjectCallbackLoad)(GameObject *game_object);
 typedef void (*GameObjectCallbackUpdate)(GameObject *game_object,
                                          SDL_Renderer *renderer);
 typedef void (*GameObjectCallbackDraw)(GameObject *game_object,
@@ -25,17 +24,12 @@ struct GameObject {
   } size;
   float velocity;
   struct {
-    GameObjectCallbackLoad load;
     GameObjectCallbackUpdate update;
     GameObjectCallbackDraw draw;
     GameObjectCallbackClean clean;
   } callback;
+  SDL_Texture *texture;
 };
-
-static inline void GameObjectLoad(GameObject *game_object) {
-  assert(game_object != NULL);
-  game_object->callback.load(game_object);
-}
 
 static inline void GameObjectUpdate(GameObject *game_object,
                                     SDL_Renderer *renderer) {

@@ -3,6 +3,6 @@
 
 #include "game_object.h"
 
-GameObject *PlayerCreate(void);
+GameObject *PlayerCreate(SDL_Renderer *renderer);
 
 #endif /* __ETERNO_PLAYER_H__ */

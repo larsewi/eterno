@@ -47,7 +47,7 @@ Game *GameInit(const char *title, int width, int height, bool fullscreen) {
   }
 
   LOG_DEBUG("Creating player");
-  game->player = PlayerCreate();
+  game->player = PlayerCreate(game->renderer);
 
   game->running = true;
 

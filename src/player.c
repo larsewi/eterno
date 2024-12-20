@@ -3,9 +3,12 @@
 #include "logger.h"
 #include "utils.h"
 
+#include <SDL3_image/SDL_image.h>
 #include <assert.h>
 
-static void OnLoad(GameObject *player) { assert(player != NULL); }
+#define TEXTURE_FILENAME                                                       \
+  "assets/FREE Mana Seed Character Base "                                      \
+  "Demo/char_a_p1/char_a_p1_0bas_humn_v01.png"
 
 static void OnUpdate(GameObject *player, SDL_Renderer *renderer) {
   assert(player != NULL);
@@ -60,10 +63,17 @@ static void OnDraw(GameObject *player, SDL_Renderer *renderer) {
 
 static void OnClean(GameObject *player) {
   assert(player != NULL);
+
+  if (player->texture != NULL) {
+    LOG_DEBUG("Destroying texture");
+    SDL_DestroyTexture(player->texture);
+    player->texture = NULL;
+  }
+
   free(player);
 }
 
-GameObject *PlayerCreate(void) {
+GameObject *PlayerCreate(SDL_Renderer *renderer) {
   GameObject *player = xmalloc(sizeof(GameObject));
 
   player->position.x = 0.0f;
@@ -74,10 +84,27 @@ GameObject *PlayerCreate(void) {
 
   player->velocity = 3.0f;
 
-  player->callback.load = OnLoad;
   player->callback.update = OnUpdate;
   player->callback.draw = OnDraw;
   player->callback.clean = OnClean;
+
+  player->texture = NULL;
+
+  LOG_DEBUG("Loading image from file '%s' into a surface", TEXTURE_FILENAME);
+  SDL_Surface *surface = IMG_Load(TEXTURE_FILENAME);
+  if (surface == NULL) {
+    LOG_ERROR("Failed to load image '%s': %s", TEXTURE_FILENAME);
+    return player;
+  }
+
+  LOG_DEBUG("Creating texture from surface");
+  player->texture = SDL_CreateTextureFromSurface(renderer, surface);
+  if (player->texture == NULL) {
+    LOG_ERROR("Failed to create texture from surface: %s", SDL_GetError());
+  }
+
+  LOG_DEBUG("Destroying surface");
+  SDL_DestroySurface(surface);
 
   return player;
 }
