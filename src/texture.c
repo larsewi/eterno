@@ -38,8 +38,8 @@ bool TextureMapLoadTexture(TextureMap *texture_map, const char *filename,
   if (DictHasKey(texture_map, texture_id)) {
     TextureMapEntry *map_entry =
         (TextureMapEntry *)DictGet(texture_map, texture_id);
-    LOG_DEBUG("Incrementing reference counter from %d to %d for texture '%s'",
-              map_entry->ref_counter, map_entry->ref_counter + 1, texture_id);
+    LOG_DEBUG("Incrementing reference counter for texture '%s' from %d to %d",
+              texture_id, map_entry->ref_counter, map_entry->ref_counter + 1);
     map_entry->ref_counter += 1;
     return true;
   }
@@ -55,7 +55,7 @@ bool TextureMapLoadTexture(TextureMap *texture_map, const char *filename,
     return false;
   }
 
-  LOG_DEBUG("Creating texture");
+  LOG_DEBUG("Creating texture from surface");
   map_entry->texture = SDL_CreateTextureFromSurface(renderer, surface);
 
   LOG_DEBUG("Destroying surface");
@@ -68,6 +68,9 @@ bool TextureMapLoadTexture(TextureMap *texture_map, const char *filename,
   }
 
   DictSet(texture_map, texture_id, map_entry, TextureMapEntryDestroy);
+
+  LOG_DEBUG("Incrementing reference counter for texture '%s' from %d to %d",
+            texture_id, map_entry->ref_counter, map_entry->ref_counter + 1);
   map_entry->ref_counter += 1;
   return true;
 }
@@ -85,8 +88,8 @@ bool TextureMapClearTexture(TextureMap *texture_map, const char *texture_id) {
   TextureMapEntry *map_entry =
       (TextureMapEntry *)DictGet(texture_map, texture_id);
   if (map_entry->ref_counter > 0) {
-    LOG_DEBUG("Decrementing reference counter from %d to %d for texture '%s'",
-              map_entry->ref_counter, map_entry->ref_counter - 1, texture_id);
+    LOG_DEBUG("Decrementing reference counter for texture '%s' from %d to %d",
+              texture_id, map_entry->ref_counter, map_entry->ref_counter - 1);
     map_entry->ref_counter -= 1;
   } else {
     LOG_DEBUG("Destroying texture '%d': Reference counter %s", texture_id,
