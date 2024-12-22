@@ -1,11 +1,14 @@
-#include "player.h"
 #include "config.h"
-#include "logger.h"
-#include "utils.h"
 
 #include <SDL3_image/SDL_image.h>
 #include <assert.h>
 
+#include "logger.h"
+#include "player.h"
+#include "texture.h"
+#include "utils.h"
+
+#define TEXTURE_ID "player"
 #define TEXTURE_FILENAME                                                       \
   "assets/FREE Mana Seed Character Base "                                      \
   "Demo/char_a_p1/char_a_p1_0bas_humn_v01.png"
@@ -41,7 +44,8 @@ static void OnUpdate(GameObject *player, SDL_Renderer *renderer) {
   }
 }
 
-static void OnDraw(GameObject *player, SDL_Renderer *renderer) {
+static void OnDraw(GameObject *player, TextureMap *texture_map,
+                   SDL_Renderer *renderer) {
   assert(player != NULL);
   assert(renderer != NULL);
 
@@ -59,21 +63,25 @@ static void OnDraw(GameObject *player, SDL_Renderer *renderer) {
   if (!SDL_RenderRect(renderer, &rect)) {
     LOG_ERROR("Failed to draw rectangle: %s", SDL_GetError());
   }
+
+  TextureMapDrawFrame(texture_map, player->texture_id, renderer,
+                      player->position.x, player->position.y,
+                      player->size.width, player->size.height, 0, 0, 0.0, 255,
+                      SDL_FLIP_NONE);
 }
 
-static void OnClean(GameObject *player) {
+static void OnClean(GameObject *player, TextureMap *texture_map) {
   assert(player != NULL);
 
-  if (player->texture != NULL) {
+  if (player->texture_id != NULL) {
     LOG_DEBUG("Destroying texture");
-    SDL_DestroyTexture(player->texture);
-    player->texture = NULL;
+    TextureMapClearTexture(texture_map, player->texture_id);
   }
 
   free(player);
 }
 
-GameObject *PlayerCreate(SDL_Renderer *renderer) {
+GameObject *PlayerCreate(TextureMap *texture_map, SDL_Renderer *renderer) {
   GameObject *player = xmalloc(sizeof(GameObject));
 
   player->position.x = 0.0f;
@@ -88,23 +96,12 @@ GameObject *PlayerCreate(SDL_Renderer *renderer) {
   player->callback.draw = OnDraw;
   player->callback.clean = OnClean;
 
-  player->texture = NULL;
+  player->texture_id = TEXTURE_ID;
 
-  LOG_DEBUG("Loading image from file '%s' into a surface", TEXTURE_FILENAME);
-  SDL_Surface *surface = IMG_Load(TEXTURE_FILENAME);
-  if (surface == NULL) {
-    LOG_ERROR("Failed to load image '%s': %s", TEXTURE_FILENAME);
-    return player;
+  if (!TextureMapLoadTexture(texture_map, TEXTURE_FILENAME, player->texture_id,
+                             renderer)) {
+    LOG_ERROR("Failed to load texture '%s'", player->texture_id);
   }
-
-  LOG_DEBUG("Creating texture from surface");
-  player->texture = SDL_CreateTextureFromSurface(renderer, surface);
-  if (player->texture == NULL) {
-    LOG_ERROR("Failed to create texture from surface: %s", SDL_GetError());
-  }
-
-  LOG_DEBUG("Destroying surface");
-  SDL_DestroySurface(surface);
 
   return player;
 }

@@ -46,7 +46,7 @@ void DictSet(Dict *dict, const char *key, void *value, void (*destroy)(void *));
  * @param key Key of entry.
  * @return True if entry with key exists.
  */
-bool LCH_DictHasKey(const Dict *dict, const char *key);
+bool DictHasKey(const Dict *dict, const char *key);
 
 /**
  * @brief Get list of keys in dictionary.

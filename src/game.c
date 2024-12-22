@@ -2,6 +2,7 @@
 #include "config.h"
 #include "logger.h"
 #include "player.h"
+#include "texture.h"
 #include "utils.h"
 
 #include <SDL3/SDL.h>
@@ -12,6 +13,7 @@ struct Game {
   bool running;
   SDL_Window *window;
   SDL_Renderer *renderer;
+  TextureMap *texture_map;
   GameObject *player;
 };
 
@@ -46,8 +48,12 @@ Game *GameInit(const char *title, int width, int height, bool fullscreen) {
     return NULL;
   }
 
+  LOG_DEBUG("Creating texture map");
+  game->texture_map = TextureMapCreate();
+  assert(game->texture_map != NULL);
+
   LOG_DEBUG("Creating player");
-  game->player = PlayerCreate(game->renderer);
+  game->player = PlayerCreate(game->texture_map, game->renderer);
 
   game->running = true;
 
@@ -104,7 +110,7 @@ void GameRender(Game *game) {
               SDL_GetError());
   }
 
-  GameObjectDraw(game->player, game->renderer);
+  GameObjectDraw(game->player, game->texture_map, game->renderer);
 
   if (!SDL_RenderPresent(game->renderer)) {
     LOG_ERROR("Failed update screen with rendering: %s", SDL_GetError());
@@ -116,7 +122,11 @@ void GameDestroy(Game *game) {
     return;
   }
 
-  GameObjectDestroy(game->player);
+  LOG_DEBUG("Destroying player");
+  GameObjectDestroy(game->player, game->texture_map);
+
+  LOG_DEBUG("Destroying texture map");
+  TextureMapDestroy(game->texture_map);
 
   LOG_DEBUG("Destroying renderer");
   SDL_DestroyRenderer(game->renderer);

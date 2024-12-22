@@ -22,11 +22,11 @@ set(SOURCES
     src/main.c
     src/logger.c
     src/game.c
-    src/game_object.c
     src/player.c
     src/buffer.c
     src/list.c
     src/dict.c
+    src/texture.c
 )
 
 # Set compile options
