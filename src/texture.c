@@ -91,8 +91,10 @@ bool TextureMapClearTexture(TextureMap *texture_map, const char *texture_id) {
     LOG_DEBUG("Decrementing reference counter for texture '%s' from %d to %d",
               texture_id, map_entry->ref_counter, map_entry->ref_counter - 1);
     map_entry->ref_counter -= 1;
-  } else {
-    LOG_DEBUG("Destroying texture '%d': Reference counter %s", texture_id,
+  }
+
+  if (map_entry->ref_counter == 0) {
+    LOG_DEBUG("Destroying texture '%s': Reference counter '%d'", texture_id,
               map_entry->ref_counter);
     DictRemove(texture_map, texture_id);
   }
