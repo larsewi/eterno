@@ -6,6 +6,7 @@
 #include "SDL3/SDL.h"
 
 #include "texture.h"
+#include "vector.h"
 
 typedef struct GameObject GameObject;
 
@@ -20,14 +21,8 @@ typedef void (*GameObjectCallbackClean)(GameObject *game_object,
                                         TextureMap *texture_map);
 
 struct GameObject {
-  struct {
-    float x;
-    float y;
-  } position;
-  struct {
-    float width;
-    float height;
-  } size;
+  Vector position;
+  Vector size;
   float velocity;
   struct {
     GameObjectCallbackEvent event;

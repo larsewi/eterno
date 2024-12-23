@@ -7,6 +7,7 @@
 #include "player.h"
 #include "texture.h"
 #include "utils.h"
+#include "vector.h"
 
 #define TEXTURE_ID "player"
 #define TEXTURE_FILENAME                                                       \
@@ -44,11 +45,13 @@ static void OnKeyDown(Player *player, const SDL_KeyboardEvent *event) {
   assert(player != NULL);
   assert(event != NULL);
 
+  bool reset_animation = false;
   switch (event->scancode) {
   case SDL_SCANCODE_W:
     if (player->direction != PLAYER_UP) {
       LOG_DEBUG("Player should look up");
       player->direction = PLAYER_UP;
+      reset_animation = true;
     }
     break;
 
@@ -56,6 +59,7 @@ static void OnKeyDown(Player *player, const SDL_KeyboardEvent *event) {
     if (player->direction != PLAYER_LEFT) {
       LOG_DEBUG("Player should look left");
       player->direction = PLAYER_LEFT;
+      reset_animation = true;
     }
     break;
 
@@ -63,6 +67,7 @@ static void OnKeyDown(Player *player, const SDL_KeyboardEvent *event) {
     if (player->direction != PLAYER_DOWN) {
       LOG_DEBUG("Player should look down");
       player->direction = PLAYER_DOWN;
+      reset_animation = true;
     }
     break;
 
@@ -70,6 +75,7 @@ static void OnKeyDown(Player *player, const SDL_KeyboardEvent *event) {
     if (player->direction != PLAYER_RIGHT) {
       LOG_DEBUG("Player should look right");
       player->direction = PLAYER_RIGHT;
+      reset_animation = true;
     }
     break;
 
@@ -86,8 +92,10 @@ static void OnKeyDown(Player *player, const SDL_KeyboardEvent *event) {
     return;
   }
 
-  player->animation_index = 0;
-  player->frame_start = SDL_GetTicks();
+  if (!player->jump && reset_animation) {
+    player->animation_index = 0;
+    player->frame_start = SDL_GetTicks();
+  }
 
   if (event->mod & SDL_KMOD_CTRL) {
     if (player->state != PLAYER_STAND) {
@@ -118,7 +126,9 @@ static void OnKeyUp(Player *player, const SDL_KeyboardEvent *event) {
   case SDL_SCANCODE_W:
     if (player->direction == PLAYER_UP) {
       LOG_DEBUG("Player should stand");
-      player->animation_index = 0;
+      if (!player->jump) {
+        player->animation_index = 0;
+      }
       player->super.velocity = 0.0f;
       player->state = PLAYER_STAND;
     }
@@ -127,7 +137,9 @@ static void OnKeyUp(Player *player, const SDL_KeyboardEvent *event) {
   case SDL_SCANCODE_A:
     if (player->direction == PLAYER_LEFT) {
       LOG_DEBUG("Player should stand");
-      player->animation_index = 0;
+      if (!player->jump) {
+        player->animation_index = 0;
+      }
       player->super.velocity = 0.0f;
       player->state = PLAYER_STAND;
     }
@@ -136,7 +148,9 @@ static void OnKeyUp(Player *player, const SDL_KeyboardEvent *event) {
   case SDL_SCANCODE_S:
     if (player->direction == PLAYER_DOWN) {
       LOG_DEBUG("Player should stand");
-      player->animation_index = 0;
+      if (!player->jump) {
+        player->animation_index = 0;
+      }
       player->super.velocity = 0.0f;
       player->state = PLAYER_STAND;
     }
@@ -145,7 +159,9 @@ static void OnKeyUp(Player *player, const SDL_KeyboardEvent *event) {
   case SDL_SCANCODE_D:
     if (player->direction == PLAYER_RIGHT) {
       LOG_DEBUG("Player should stand");
-      player->animation_index = 0;
+      if (!player->jump) {
+        player->animation_index = 0;
+      }
       player->super.velocity = 0.0f;
       player->state = PLAYER_STAND;
     }
@@ -189,27 +205,27 @@ static void OnUpdate(GameObject *game_object, SDL_Renderer *renderer) {
   const bool *keyboard_state = SDL_GetKeyboardState(NULL);
   assert(keyboard_state != NULL);
 
-  if (keyboard_state[SDL_SCANCODE_W] && player->super.position.y > 0.0f) {
-    player->super.position.y =
-        MAX(player->super.position.y - player->super.velocity, 0.0f);
+  Vector vec = {.x = 0.0f, .y = 0.0f};
+
+  if (keyboard_state[SDL_SCANCODE_W]) {
+    vec.y -= 1.0f;
+  }
+  if (keyboard_state[SDL_SCANCODE_A]) {
+    vec.x -= 1.0f;
+  }
+  if (keyboard_state[SDL_SCANCODE_S]) {
+    vec.y += 1.0f;
+  }
+  if (keyboard_state[SDL_SCANCODE_D]) {
+    vec.x += 1.0f;
   }
 
-  if (keyboard_state[SDL_SCANCODE_A] && player->super.position.x > 0.0f) {
-    player->super.position.x =
-        MAX(player->super.position.x - player->super.velocity, 0.0f);
-  }
-
-  if (keyboard_state[SDL_SCANCODE_S] &&
-      player->super.position.y < (height - player->super.size.height)) {
-    player->super.position.y =
-        MIN(player->super.position.y + player->super.velocity, height);
-  }
-
-  if (keyboard_state[SDL_SCANCODE_D] &&
-      player->super.position.x < (width - player->super.size.width)) {
-    player->super.position.x =
-        MIN(player->super.position.x + player->super.velocity, width);
-  }
+  VectorNorm(&vec);
+  VectorMul(&vec, player->super.velocity);
+  VectorAdd(&player->super.position, &vec);
+  Vector max = {.x = width, .y = height};
+  VectorCap(&player->super.position, VectorZero(),
+            VectorSub(&max, &player->super.size));
 
   player->row = player->direction;
 
