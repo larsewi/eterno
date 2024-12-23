@@ -9,6 +9,8 @@
 
 typedef struct GameObject GameObject;
 
+typedef void (*GameObjectCallbackEvent)(GameObject *game_object,
+                                        const SDL_Event *event);
 typedef void (*GameObjectCallbackUpdate)(GameObject *game_object,
                                          SDL_Renderer *renderer);
 typedef void (*GameObjectCallbackDraw)(GameObject *game_object,
@@ -28,12 +30,19 @@ struct GameObject {
   } size;
   float velocity;
   struct {
+    GameObjectCallbackEvent event;
     GameObjectCallbackUpdate update;
     GameObjectCallbackDraw draw;
     GameObjectCallbackClean clean;
   } callback;
   const char *texture_id;
 };
+
+static inline void GameObjectEvent(GameObject *game_object,
+                                   const SDL_Event *event) {
+  assert(game_object != NULL);
+  game_object->callback.event(game_object, event);
+}
 
 static inline void GameObjectUpdate(GameObject *game_object,
                                     SDL_Renderer *renderer) {

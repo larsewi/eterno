@@ -75,12 +75,16 @@ void GameHandleEvents(Game *game) {
     case SDL_EVENT_QUIT:
       game->running = false;
       break;
+
     case SDL_EVENT_WINDOW_RESIZED:
       window_resized = true;
       break;
+
     default:
       break;
     }
+
+    GameObjectEvent(game->player, &event);
   }
 
   if (window_resized) {

@@ -30,6 +30,8 @@
 #define NDEBUG_UNUSED
 #endif
 
+#define LENGTH(array) (sizeof(array) / sizeof(array[0]))
+
 #define StringEqual(a, b) (strcmp(a, b) == 0)
 
 /**
