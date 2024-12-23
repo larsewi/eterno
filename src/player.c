@@ -46,31 +46,41 @@ static void OnKeyDown(Player *player, const SDL_KeyboardEvent *event) {
 
   switch (event->scancode) {
   case SDL_SCANCODE_W:
-    LOG_DEBUG("Player should look up");
-    player->direction = PLAYER_UP;
+    if (player->direction != PLAYER_UP) {
+      LOG_DEBUG("Player should look up");
+      player->direction = PLAYER_UP;
+    }
     break;
 
   case SDL_SCANCODE_A:
-    LOG_DEBUG("Player should look left");
-    player->direction = PLAYER_LEFT;
+    if (player->direction != PLAYER_LEFT) {
+      LOG_DEBUG("Player should look left");
+      player->direction = PLAYER_LEFT;
+    }
     break;
 
   case SDL_SCANCODE_S:
-    LOG_DEBUG("Player should look down");
-    player->direction = PLAYER_DOWN;
+    if (player->direction != PLAYER_DOWN) {
+      LOG_DEBUG("Player should look down");
+      player->direction = PLAYER_DOWN;
+    }
     break;
 
   case SDL_SCANCODE_D:
-    LOG_DEBUG("Player should look right");
-    player->direction = PLAYER_RIGHT;
+    if (player->direction != PLAYER_RIGHT) {
+      LOG_DEBUG("Player should look right");
+      player->direction = PLAYER_RIGHT;
+    }
     break;
 
   case SDL_SCANCODE_SPACE:
-    LOG_DEBUG("Player should jump");
-    player->animation_index = 0;
-    player->frame_start = SDL_GetTicks();
-    player->jump = true;
-    /* fallthrough */
+    if (!player->jump) {
+      LOG_DEBUG("Player should jump");
+      player->animation_index = 0;
+      player->frame_start = SDL_GetTicks();
+      player->jump = true;
+    }
+    return;
 
   default:
     return;
@@ -80,20 +90,24 @@ static void OnKeyDown(Player *player, const SDL_KeyboardEvent *event) {
   player->frame_start = SDL_GetTicks();
 
   if (event->mod & SDL_KMOD_CTRL) {
-    LOG_DEBUG("Player should stand");
-    player->state = PLAYER_STAND;
-    player->super.velocity = 0.0f;
+    if (player->state != PLAYER_STAND) {
+      LOG_DEBUG("Player should stand");
+      player->state = PLAYER_STAND;
+      player->super.velocity = 0.0f;
+    }
   } else if (event->mod & SDL_KMOD_SHIFT) {
-    LOG_DEBUG("Player should run");
-    player->state = PLAYER_RUN;
-    player->super.velocity = RUN_VELOCITY;
+    if (player->state != PLAYER_RUN) {
+      LOG_DEBUG("Player should run");
+      player->state = PLAYER_RUN;
+      player->super.velocity = RUN_VELOCITY;
+    }
   } else {
-    LOG_DEBUG("Player should walk");
-    player->state = PLAYER_WALK;
-    player->super.velocity = WALK_VELOCITY;
+    if (player->state != PLAYER_WALK) {
+      LOG_DEBUG("Player should walk");
+      player->state = PLAYER_WALK;
+      player->super.velocity = WALK_VELOCITY;
+    }
   }
-
-  LOG_DEBUG("Player velocity %.2f", player->super.velocity);
 }
 
 static void OnKeyUp(Player *player, const SDL_KeyboardEvent *event) {
@@ -103,24 +117,36 @@ static void OnKeyUp(Player *player, const SDL_KeyboardEvent *event) {
   switch (event->scancode) {
   case SDL_SCANCODE_W:
     if (player->direction == PLAYER_UP) {
+      LOG_DEBUG("Player should stand");
+      player->animation_index = 0;
+      player->super.velocity = 0.0f;
       player->state = PLAYER_STAND;
     }
     break;
 
   case SDL_SCANCODE_A:
     if (player->direction == PLAYER_LEFT) {
+      LOG_DEBUG("Player should stand");
+      player->animation_index = 0;
+      player->super.velocity = 0.0f;
       player->state = PLAYER_STAND;
     }
     break;
 
   case SDL_SCANCODE_S:
     if (player->direction == PLAYER_DOWN) {
+      LOG_DEBUG("Player should stand");
+      player->animation_index = 0;
+      player->super.velocity = 0.0f;
       player->state = PLAYER_STAND;
     }
     break;
 
   case SDL_SCANCODE_D:
     if (player->direction == PLAYER_RIGHT) {
+      LOG_DEBUG("Player should stand");
+      player->animation_index = 0;
+      player->super.velocity = 0.0f;
       player->state = PLAYER_STAND;
     }
     break;
@@ -128,11 +154,6 @@ static void OnKeyUp(Player *player, const SDL_KeyboardEvent *event) {
   default:
     return;
   }
-
-  LOG_DEBUG("Player should stand");
-  player->animation_index = 0;
-  player->super.velocity = 0.0f;
-  LOG_DEBUG("Player velocity %.2f", player->super.velocity);
 }
 
 static void OnEvent(GameObject *game_object, const SDL_Event *event) {
@@ -165,39 +186,32 @@ static void OnUpdate(GameObject *game_object, SDL_Renderer *renderer) {
     return;
   }
 
-  switch (player->direction) {
-  case PLAYER_DOWN:
-    if (player->super.position.y < (height - player->super.size.height)) {
-      player->super.position.y =
-          MIN(player->super.position.y + player->super.velocity, height);
-    }
-    player->row = 0;
-    break;
+  const bool *keyboard_state = SDL_GetKeyboardState(NULL);
+  assert(keyboard_state != NULL);
 
-  case PLAYER_UP:
-    if (player->super.position.y > 0.0f) {
-      player->super.position.y =
-          MAX(player->super.position.y - player->super.velocity, 0.0f);
-    }
-    player->row = 1;
-    break;
-
-  case PLAYER_RIGHT:
-    if (player->super.position.x < (width - player->super.size.width)) {
-      player->super.position.x =
-          MIN(player->super.position.x + player->super.velocity, width);
-    }
-    player->row = 2;
-    break;
-
-  case PLAYER_LEFT:
-    if (player->super.position.x > 0.0f) {
-      player->super.position.x =
-          MAX(player->super.position.x - player->super.velocity, 0.0f);
-    }
-    player->row = 3;
-    break;
+  if (keyboard_state[SDL_SCANCODE_W] && player->super.position.y > 0.0f) {
+    player->super.position.y =
+        MAX(player->super.position.y - player->super.velocity, 0.0f);
   }
+
+  if (keyboard_state[SDL_SCANCODE_A] && player->super.position.x > 0.0f) {
+    player->super.position.x =
+        MAX(player->super.position.x - player->super.velocity, 0.0f);
+  }
+
+  if (keyboard_state[SDL_SCANCODE_S] &&
+      player->super.position.y < (height - player->super.size.height)) {
+    player->super.position.y =
+        MIN(player->super.position.y + player->super.velocity, height);
+  }
+
+  if (keyboard_state[SDL_SCANCODE_D] &&
+      player->super.position.x < (width - player->super.size.width)) {
+    player->super.position.x =
+        MIN(player->super.position.x + player->super.velocity, width);
+  }
+
+  player->row = player->direction;
 
   const Uint32 frame_time = SDL_GetTicks();
   int num_frames;
