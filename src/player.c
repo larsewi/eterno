@@ -34,6 +34,8 @@ typedef struct {
   bool jump;
   int animation_index;
   Uint32 frame_start;
+  Uint32 jump_start;
+  float jump_offset;
   int column;
   int row;
 } Player;
@@ -45,7 +47,6 @@ static void OnKeyDown(Player *player, const SDL_KeyboardEvent *event) {
   assert(player != NULL);
   assert(event != NULL);
 
-  bool reset_animation = false;
   switch (event->scancode) {
   case SDL_SCANCODE_W:
     player->direction = PLAYER_UP;
@@ -65,20 +66,15 @@ static void OnKeyDown(Player *player, const SDL_KeyboardEvent *event) {
 
   case SDL_SCANCODE_SPACE:
     if (!player->jump) {
-      LOG_DEBUG("Player should jump");
+      /* Reset animation */
       player->animation_index = 0;
-      player->frame_start = SDL_GetTicks();
+      player->jump_start = player->frame_start = SDL_GetTicks();
       player->jump = true;
     }
     return;
 
   default:
     return;
-  }
-
-  if (!player->jump && reset_animation) {
-    player->animation_index = 0;
-    player->frame_start = SDL_GetTicks();
   }
 }
 
@@ -101,6 +97,8 @@ static void OnEvent(GameObject *game_object, const SDL_Event *event) {
 static void OnUpdate(GameObject *game_object, SDL_Renderer *renderer) {
   assert(game_object != NULL);
   Player *player = (Player *)game_object;
+
+  const Uint32 frame_time = SDL_GetTicks();
 
   int width, height;
   if (!SDL_GetRenderOutputSize(renderer, &width, &height)) {
@@ -156,20 +154,30 @@ static void OnUpdate(GameObject *game_object, SDL_Renderer *renderer) {
 
   player->row = player->direction;
 
-  const Uint32 frame_time = SDL_GetTicks();
   int num_frames;
   const int *cycle;
   const Uint32 *timing;
 
+  player->jump_offset = 0.0f;
   if (player->jump) {
     static const int jump_cycle[] = {5, 6, 7, 5};
-    static const Uint32 jump_timing[] = {300, 150, 100, 300};
+    static const Uint32 jump_timing[] = {150, 250, 250, 200};
 
     num_frames = LENGTH(jump_cycle);
     assert(num_frames == LENGTH(jump_timing));
 
     cycle = jump_cycle;
     timing = jump_timing;
+
+    float animation_time = 0.0f;
+    for (int i = 0; i < num_frames; i++) {
+      animation_time += jump_timing[i];
+    }
+
+    const float amplitude = 20.0f;
+    const float frequency = 1.0f / (2.0f * animation_time);
+    const Uint32 time = frame_time - player->jump_start;
+    player->jump_offset = amplitude * SDL_sinf(2 * SDL_PI_F * frequency * time);
   } else {
     switch (player->state) {
     case PLAYER_STAND: {
@@ -236,7 +244,8 @@ static void OnDraw(GameObject *game_object, TextureMap *texture_map,
   Player *player = (Player *)game_object;
 
   TextureMapDrawFrame(texture_map, TEXTURE_ID, renderer,
-                      player->super.position.x, player->super.position.y,
+                      player->super.position.x,
+                      player->super.position.y - player->jump_offset,
                       player->super.size.width, player->super.size.height,
                       player->column, player->row, 0.0, 255, SDL_FLIP_NONE);
 }

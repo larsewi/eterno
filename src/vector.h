@@ -1,7 +1,7 @@
 #ifndef __ETERNO_VECTOR_H__
 #define __ETERNO_VECTOR_H__
 
-#include <math.h>
+#include <SDL3/SDL.h>
 
 #include "utils.h"
 
@@ -44,7 +44,7 @@ static inline Vector *VectorMul(Vector *vec, float k) {
 }
 
 static inline float VectorMag(const Vector *vec) {
-  return sqrtf(powf(vec->x, 2.0f) + powf(vec->y, 2.0f));
+  return SDL_sqrtf(SDL_powf(vec->x, 2.0f) + SDL_powf(vec->y, 2.0f));
 }
 
 static inline Vector *VectorNorm(Vector *vec) {

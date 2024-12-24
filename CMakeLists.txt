@@ -36,4 +36,4 @@ add_compile_options(-Wall -Wextra -Werror)
 add_executable(eterno ${SOURCES})
 
 # Link SDL3 to your target
-target_link_libraries(eterno PRIVATE SDL3::SDL3 SDL3_image::SDL3_image m)
+target_link_libraries(eterno PRIVATE SDL3::SDL3 SDL3_image::SDL3_image)
