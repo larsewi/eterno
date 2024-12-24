@@ -21,6 +21,10 @@ static inline const Vector *VectorZero(void) {
   return &vec;
 }
 
+static inline bool VectorIsZero(const Vector *vec) {
+  return ((vec->x == 0.0f) && (vec->y == 0.0f));
+}
+
 static inline Vector *VectorAdd(Vector *vec, const Vector *other) {
   vec->x += other->x;
   vec->y += other->y;

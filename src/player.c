@@ -38,8 +38,8 @@ typedef struct {
   int row;
 } Player;
 
-#define WALK_VELOCITY 3.0f
-#define RUN_VELOCITY 6.0f
+#define WALK_VELOCITY 1.0f
+#define RUN_VELOCITY 2.0f
 
 static void OnKeyDown(Player *player, const SDL_KeyboardEvent *event) {
   assert(player != NULL);
@@ -48,35 +48,19 @@ static void OnKeyDown(Player *player, const SDL_KeyboardEvent *event) {
   bool reset_animation = false;
   switch (event->scancode) {
   case SDL_SCANCODE_W:
-    if (player->direction != PLAYER_UP) {
-      LOG_DEBUG("Player should look up");
-      player->direction = PLAYER_UP;
-      reset_animation = true;
-    }
+    player->direction = PLAYER_UP;
     break;
 
   case SDL_SCANCODE_A:
-    if (player->direction != PLAYER_LEFT) {
-      LOG_DEBUG("Player should look left");
-      player->direction = PLAYER_LEFT;
-      reset_animation = true;
-    }
+    player->direction = PLAYER_LEFT;
     break;
 
   case SDL_SCANCODE_S:
-    if (player->direction != PLAYER_DOWN) {
-      LOG_DEBUG("Player should look down");
-      player->direction = PLAYER_DOWN;
-      reset_animation = true;
-    }
+    player->direction = PLAYER_DOWN;
     break;
 
   case SDL_SCANCODE_D:
-    if (player->direction != PLAYER_RIGHT) {
-      LOG_DEBUG("Player should look right");
-      player->direction = PLAYER_RIGHT;
-      reset_animation = true;
-    }
+    player->direction = PLAYER_RIGHT;
     break;
 
   case SDL_SCANCODE_SPACE:
@@ -95,26 +79,6 @@ static void OnKeyDown(Player *player, const SDL_KeyboardEvent *event) {
   if (!player->jump && reset_animation) {
     player->animation_index = 0;
     player->frame_start = SDL_GetTicks();
-  }
-
-  if (event->mod & SDL_KMOD_CTRL) {
-    if (player->state != PLAYER_STAND) {
-      LOG_DEBUG("Player should stand");
-      player->state = PLAYER_STAND;
-      player->super.velocity = 0.0f;
-    }
-  } else if (event->mod & SDL_KMOD_SHIFT) {
-    if (player->state != PLAYER_RUN) {
-      LOG_DEBUG("Player should run");
-      player->state = PLAYER_RUN;
-      player->super.velocity = RUN_VELOCITY;
-    }
-  } else {
-    if (player->state != PLAYER_WALK) {
-      LOG_DEBUG("Player should walk");
-      player->state = PLAYER_WALK;
-      player->super.velocity = WALK_VELOCITY;
-    }
   }
 }
 
@@ -148,7 +112,6 @@ static void OnUpdate(GameObject *game_object, SDL_Renderer *renderer) {
   assert(keyboard_state != NULL);
 
   Vector vec = {.x = 0.0f, .y = 0.0f};
-
   if (keyboard_state[SDL_SCANCODE_W]) {
     vec.y -= 1.0f;
   }
@@ -161,16 +124,34 @@ static void OnUpdate(GameObject *game_object, SDL_Renderer *renderer) {
   if (keyboard_state[SDL_SCANCODE_D]) {
     vec.x += 1.0f;
   }
+  VectorNorm(&vec);
 
-  if (VectorMag(&vec) > 0.0f) {
-    VectorNorm(&vec);
-    VectorMul(&vec, player->super.velocity);
+  if (keyboard_state[SDL_SCANCODE_LCTRL]) {
+    VectorMul(&vec, 0.0f);
+  } else if (keyboard_state[SDL_SCANCODE_LSHIFT]) {
+    VectorMul(&vec, RUN_VELOCITY);
+    if (!player->jump && player->state != PLAYER_RUN) {
+      player->animation_index = 0;
+    }
+    player->state = PLAYER_RUN;
+  } else {
+    VectorMul(&vec, WALK_VELOCITY);
+    if (!player->jump && player->state != PLAYER_WALK) {
+      player->animation_index = 0;
+    }
+    player->state = PLAYER_WALK;
+  }
+
+  if (VectorIsZero(&vec)) {
+    if (!player->jump && player->state != PLAYER_STAND) {
+      player->animation_index = 0;
+    }
+    player->state = PLAYER_STAND;
+  } else {
     VectorAdd(&player->super.position, &vec);
     Vector max = {.x = width, .y = height};
     VectorCap(&player->super.position, VectorZero(),
               VectorSub(&max, &player->super.size));
-  } else {
-    player->state = PLAYER_STAND;
   }
 
   player->row = player->direction;
@@ -283,8 +264,6 @@ GameObject *PlayerCreate(TextureMap *texture_map, SDL_Renderer *renderer) {
   player->super.size.width = 64.0f;
   player->super.size.height = 64.0f;
 
-  player->super.velocity = 0.0f;
-
   player->super.callback.event = OnEvent;
   player->super.callback.update = OnUpdate;
   player->super.callback.draw = OnDraw;
@@ -292,6 +271,7 @@ GameObject *PlayerCreate(TextureMap *texture_map, SDL_Renderer *renderer) {
 
   player->state = PLAYER_STAND;
   player->direction = PLAYER_DOWN;
+  player->jump = false;
 
   if (!TextureMapLoadTexture(texture_map, TEXTURE_FILENAME, TEXTURE_ID,
                              renderer)) {

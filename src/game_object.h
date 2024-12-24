@@ -23,7 +23,6 @@ typedef void (*GameObjectCallbackClean)(GameObject *game_object,
 struct GameObject {
   Vector position;
   Vector size;
-  float velocity;
   struct {
     GameObjectCallbackEvent event;
     GameObjectCallbackUpdate update;
