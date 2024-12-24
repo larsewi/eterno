@@ -118,60 +118,6 @@ static void OnKeyDown(Player *player, const SDL_KeyboardEvent *event) {
   }
 }
 
-static void OnKeyUp(Player *player, const SDL_KeyboardEvent *event) {
-  assert(player != NULL);
-  assert(event != NULL);
-
-  switch (event->scancode) {
-  case SDL_SCANCODE_W:
-    if (player->direction == PLAYER_UP) {
-      LOG_DEBUG("Player should stand");
-      if (!player->jump) {
-        player->animation_index = 0;
-      }
-      player->super.velocity = 0.0f;
-      player->state = PLAYER_STAND;
-    }
-    break;
-
-  case SDL_SCANCODE_A:
-    if (player->direction == PLAYER_LEFT) {
-      LOG_DEBUG("Player should stand");
-      if (!player->jump) {
-        player->animation_index = 0;
-      }
-      player->super.velocity = 0.0f;
-      player->state = PLAYER_STAND;
-    }
-    break;
-
-  case SDL_SCANCODE_S:
-    if (player->direction == PLAYER_DOWN) {
-      LOG_DEBUG("Player should stand");
-      if (!player->jump) {
-        player->animation_index = 0;
-      }
-      player->super.velocity = 0.0f;
-      player->state = PLAYER_STAND;
-    }
-    break;
-
-  case SDL_SCANCODE_D:
-    if (player->direction == PLAYER_RIGHT) {
-      LOG_DEBUG("Player should stand");
-      if (!player->jump) {
-        player->animation_index = 0;
-      }
-      player->super.velocity = 0.0f;
-      player->state = PLAYER_STAND;
-    }
-    break;
-
-  default:
-    return;
-  }
-}
-
 static void OnEvent(GameObject *game_object, const SDL_Event *event) {
   assert(game_object != NULL);
   assert(event != NULL);
@@ -181,10 +127,6 @@ static void OnEvent(GameObject *game_object, const SDL_Event *event) {
   switch (event->type) {
   case SDL_EVENT_KEY_DOWN:
     OnKeyDown(player, &event->key);
-    break;
-
-  case SDL_EVENT_KEY_UP:
-    OnKeyUp(player, &event->key);
     break;
 
   default:
@@ -220,12 +162,16 @@ static void OnUpdate(GameObject *game_object, SDL_Renderer *renderer) {
     vec.x += 1.0f;
   }
 
-  VectorNorm(&vec);
-  VectorMul(&vec, player->super.velocity);
-  VectorAdd(&player->super.position, &vec);
-  Vector max = {.x = width, .y = height};
-  VectorCap(&player->super.position, VectorZero(),
-            VectorSub(&max, &player->super.size));
+  if (VectorMag(&vec) > 0.0f) {
+    VectorNorm(&vec);
+    VectorMul(&vec, player->super.velocity);
+    VectorAdd(&player->super.position, &vec);
+    Vector max = {.x = width, .y = height};
+    VectorCap(&player->super.position, VectorZero(),
+              VectorSub(&max, &player->super.size));
+  } else {
+    player->state = PLAYER_STAND;
+  }
 
   player->row = player->direction;
 
@@ -307,21 +253,6 @@ static void OnDraw(GameObject *game_object, TextureMap *texture_map,
   assert(renderer != NULL);
 
   Player *player = (Player *)game_object;
-
-  if (!SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255)) {
-    LOG_ERROR("Failed to set draw color: %s", SDL_GetError());
-  }
-
-  SDL_FRect rect = {
-      .x = player->super.position.x,
-      .y = player->super.position.y,
-      .w = player->super.size.width,
-      .h = player->super.size.height,
-  };
-
-  if (!SDL_RenderRect(renderer, &rect)) {
-    LOG_ERROR("Failed to draw rectangle: %s", SDL_GetError());
-  }
 
   TextureMapDrawFrame(texture_map, TEXTURE_ID, renderer,
                       player->super.position.x, player->super.position.y,
