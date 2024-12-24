@@ -221,14 +221,11 @@ static void OnUpdate(GameObject *game_object, SDL_Renderer *renderer) {
 
   if ((num_frames > 1) &&
       (frame_time - player->frame_start) > timing[player->animation_index]) {
-    LOG_DEBUG("Changing animation index from %d to %d", player->animation_index,
-              (player->animation_index + 1) % num_frames);
     player->animation_index = (player->animation_index + 1) % num_frames;
     player->frame_start = frame_time;
 
     /* Stop the jump animation when sequence is done */
     if (player->jump && (player->animation_index == 0)) {
-      LOG_DEBUG("Jump sequence done");
       player->jump = false;
     }
   }
