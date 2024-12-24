@@ -86,7 +86,9 @@ static void OnEvent(GameObject *game_object, const SDL_Event *event) {
 
   switch (event->type) {
   case SDL_EVENT_KEY_DOWN:
-    OnKeyDown(player, &event->key);
+    if (!event->key.repeat) {
+      OnKeyDown(player, &event->key);
+    }
     break;
 
   default:
