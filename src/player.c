@@ -49,22 +49,19 @@ static void OnEvent(GameObject *game_object, const SDL_Event *event) {
   return;
 }
 
-static void OnUpdate(GameObject *game_object, SDL_Renderer *renderer) {
+static void OnUpdate(GameObject *game_object) {
   assert(game_object != NULL);
   Player *player = (Player *)game_object;
 
   const Uint32 frame_time = SDL_GetTicks();
   const bool *keyboard_state = SDL_GetKeyboardState(NULL);
 
-  int width, height;
-  if (!SDL_GetRenderOutputSize(renderer, &width, &height)) {
-    LOG_CRITICAL("Failed to get render output size");
-  }
-
   /* Move player up and down */
-  if (player->super.position.y >= (height - player->super.size.height)) {
+  if (player->super.position.y >=
+      (RENDER_TARGET_HEIGHT - player->super.size.height)) {
     /* Player is colliding with floor */
-    player->super.position.y = (height - player->super.size.height);
+    player->super.position.y =
+        (RENDER_TARGET_HEIGHT - player->super.size.height);
     player->super.velocity.y = 0.0f;
 
     if (keyboard_state[SDL_SCANCODE_SPACE]) {
@@ -89,9 +86,10 @@ static void OnUpdate(GameObject *game_object, SDL_Renderer *renderer) {
       player->super.velocity.x -= (is_running) ? RUN_VELOCITY : WALK_VELOCITY;
     }
   }
-  if (player->super.position.x >= (width - player->super.size.width)) {
+  if (player->super.position.x >=
+      (RENDER_TARGET_WIDTH - player->super.size.width)) {
     /* Player is colliding with right wall */
-    player->super.position.x = (width - player->super.size.width);
+    player->super.position.x = (RENDER_TARGET_WIDTH - player->super.size.width);
   } else {
     if (keyboard_state[SDL_SCANCODE_D]) {
       /* Player wants to walk to the right */

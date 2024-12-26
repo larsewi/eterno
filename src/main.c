@@ -11,8 +11,8 @@
 #include "utils.h"
 
 #define GAME_TITLE "Eterno"
-#define WINDOW_WIDTH 720
-#define WINDOW_HEIGHT 480
+#define WINDOW_WIDTH 1080
+#define WINDOW_HEIGHT 720
 #define FPS 60
 #define DELAY_TIME (1000.0f / FPS)
 
