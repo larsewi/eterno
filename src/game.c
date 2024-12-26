@@ -160,7 +160,7 @@ void GameRender(Game *game) {
 
   /* Get window size */
   int window_width, window_height;
-  if (!SDL_GetRenderOutputSize(game->renderer, &window_width, &window_height)) {
+  if (!SDL_GetWindowSizeInPixels(game->window, &window_width, &window_height)) {
     LOG_ERROR("Failed to get window size: %s", SDL_GetError());
     return;
   }
@@ -168,7 +168,8 @@ void GameRender(Game *game) {
   /* Compute scaling factor */
   const float scale_x = window_width / RENDER_TARGET_WIDTH;
   const float scale_y = window_height / RENDER_TARGET_HEIGHT;
-  const float scale = (scale_x < scale_y) ? scale_x : scale_y;
+  const float scale = MIN(scale_x, scale_y);
+  LOG_DEBUG("Scale: %.2f", scale);
 
   /* Compute centered view port */
   const float scaled_width = RENDER_TARGET_WIDTH * scale;
