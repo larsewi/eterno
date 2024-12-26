@@ -40,16 +40,16 @@ typedef struct {
 #define JUMP_VELOCITY 3.0f
 #define GRAVITY 0.00028f
 
-static void OnEvent(GameObject *game_object, const SDL_Event *event) {
+static bool OnEvent(GameObject *game_object, const SDL_Event *event) {
   assert(game_object != NULL);
   assert(event != NULL);
 
   Player *player = (Player *)game_object;
   (void)player;
-  return;
+  return true;
 }
 
-static void OnUpdate(GameObject *game_object) {
+static bool OnUpdate(GameObject *game_object) {
   assert(game_object != NULL);
   Player *player = (Player *)game_object;
 
@@ -147,9 +147,11 @@ static void OnUpdate(GameObject *game_object) {
 
   /* Update player position */
   VectorAdd(&player->super.position, &player->super.velocity);
+
+  return true;
 }
 
-static void OnDraw(GameObject *game_object, TextureMap *texture_map,
+static bool OnDraw(GameObject *game_object, TextureMap *texture_map,
                    SDL_Renderer *renderer) {
   assert(game_object != NULL);
   assert(renderer != NULL);
@@ -160,16 +162,22 @@ static void OnDraw(GameObject *game_object, TextureMap *texture_map,
   float texture_width;
   if (!TextureMapGetTextureSize(texture_map, texture_id, &texture_width,
                                 NULL)) {
-    LOG_CRITICAL("Failed to get size of texture '%s'", texture_id);
+    LOG_ERROR("Failed to get size of texture '%s'", texture_id);
+    return false;
   }
 
   int num_frames = (int)(texture_width / player->super.size.width);
   int column = player->frame_index % num_frames;
 
-  TextureMapDrawFrame(texture_map, texture_id, renderer,
-                      player->super.position.x, player->super.position.y,
-                      player->super.size.width, player->super.size.height,
-                      column, 0, 0.0, 255, player->flip);
+  if (!TextureMapDrawFrame(texture_map, texture_id, renderer,
+                           player->super.position.x, player->super.position.y,
+                           player->super.size.width, player->super.size.height,
+                           column, 0, 0.0, 255, player->flip)) {
+    LOG_ERROR("Failed to draw frame");
+    return false;
+  }
+
+  return true;
 }
 
 static void OnClean(GameObject *game_object, TextureMap *texture_map) {
@@ -190,10 +198,12 @@ static void OnClean(GameObject *game_object, TextureMap *texture_map) {
 GameObject *PlayerCreate(TextureMap *texture_map, SDL_Renderer *renderer) {
   int width, height;
   if (!SDL_GetRenderOutputSize(renderer, &width, &height)) {
-    LOG_CRITICAL("Failed to get render output size");
+    LOG_ERROR("Failed to get render output size");
+    return NULL;
   }
 
   Player *player = xmalloc(sizeof(Player));
+  memset(player, 0, sizeof(Player));
 
   player->super.size.width = 80.0f;
   player->super.size.height = 64.0f;
@@ -221,12 +231,16 @@ GameObject *PlayerCreate(TextureMap *texture_map, SDL_Renderer *renderer) {
     char file[PATH_MAX];
     int ret = snprintf(file, sizeof(file), "assets/%s.png", id);
     if (ret < 0 || (size_t)ret >= sizeof(file)) {
-      LOG_CRITICAL("Failed to load texture '%s': Path too long (%d >= %zu)", id,
-                   ret, sizeof(file));
+      LOG_ERROR("Failed to load texture '%s': Path too long (%d >= %zu)", id,
+                ret, sizeof(file));
+      GameObjectDestroy((GameObject *)player, texture_map);
+      return NULL;
     }
 
     if (!TextureMapLoadTexture(texture_map, file, id, renderer)) {
-      LOG_CRITICAL("Failed to load texture '%s' from file '%s'", id, file);
+      LOG_ERROR("Failed to load texture '%s' from file '%s'", id, file);
+      GameObjectDestroy((GameObject *)player, texture_map);
+      return NULL;
     }
   }
 

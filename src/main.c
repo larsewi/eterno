@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
 
   Game *game = GameInit(GAME_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, false);
   if (game == NULL) {
-    /* Error is already logged */
+    LOG_ERROR("Failed to initialize game");
     return EXIT_FAILURE;
   }
 
@@ -85,9 +85,20 @@ int main(int argc, char *argv[]) {
   while (GameIsRunning(game)) {
     frame_start = SDL_GetTicks();
 
-    GameHandleEvents(game);
-    GameUpdate(game);
-    GameRender(game);
+    if (!GameHandleEvents(game)) {
+      LOG_ERROR("Failed to handle events");
+      break;
+    }
+
+    if (!GameUpdate(game)) {
+      LOG_ERROR("Failed to update game");
+      break;
+    }
+
+    if (!GameRender(game)) {
+      LOG_ERROR("Failed to render game");
+      break;
+    }
 
     uint64_t frame_time = SDL_GetTicks() - frame_start;
     if (frame_time < DELAY_TIME) {

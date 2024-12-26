@@ -10,10 +10,10 @@
 
 typedef struct GameObject GameObject;
 
-typedef void (*GameObjectCallbackEvent)(GameObject *game_object,
+typedef bool (*GameObjectCallbackEvent)(GameObject *game_object,
                                         const SDL_Event *event);
-typedef void (*GameObjectCallbackUpdate)(GameObject *game_object);
-typedef void (*GameObjectCallbackDraw)(GameObject *game_object,
+typedef bool (*GameObjectCallbackUpdate)(GameObject *game_object);
+typedef bool (*GameObjectCallbackDraw)(GameObject *game_object,
                                        TextureMap *texture_map,
                                        SDL_Renderer *renderer);
 typedef void (*GameObjectCallbackClean)(GameObject *game_object,
@@ -31,27 +31,43 @@ struct GameObject {
   } callback;
 };
 
-static inline void GameObjectEvent(GameObject *game_object,
+static inline bool GameObjectEvent(GameObject *game_object,
                                    const SDL_Event *event) {
   assert(game_object != NULL);
-  game_object->callback.event(game_object, event);
+
+  if (!game_object->callback.event(game_object, event)) {
+    return false;
+  }
+
+  return true;
 }
 
-static inline void GameObjectUpdate(GameObject *game_object) {
+static inline bool GameObjectUpdate(GameObject *game_object) {
   assert(game_object != NULL);
-  game_object->callback.update(game_object);
+
+  if (!game_object->callback.update(game_object)) {
+    return false;
+  }
+
+  return true;
 }
 
-static inline void GameObjectDraw(GameObject *game_object,
+static inline bool GameObjectDraw(GameObject *game_object,
                                   TextureMap *texture_map,
                                   SDL_Renderer *renderer) {
   assert(game_object != NULL);
-  game_object->callback.draw(game_object, texture_map, renderer);
+
+  if (!game_object->callback.draw(game_object, texture_map, renderer)) {
+    return false;
+  }
+
+  return true;
 }
 
 static inline void GameObjectDestroy(GameObject *game_object,
                                      TextureMap *texture_map) {
   assert(game_object != NULL);
+
   game_object->callback.clean(game_object, texture_map);
 }
 

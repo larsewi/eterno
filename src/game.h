@@ -9,11 +9,11 @@ Game *GameInit(const char *title, int width, int height, bool fullscreen);
 
 bool GameIsRunning(Game *game);
 
-void GameHandleEvents(Game *game);
+bool GameHandleEvents(Game *game);
 
-void GameUpdate(Game *game);
+bool GameUpdate(Game *game);
 
-void GameRender(Game *game);
+bool GameRender(Game *game);
 
 void GameDestroy(Game *game);
 

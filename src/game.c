@@ -65,7 +65,13 @@ Game *GameInit(const char *title, int width, int height, bool fullscreen) {
 
   LOG_DEBUG("Creating player");
   game->player = PlayerCreate(game->texture_map, game->renderer);
+  if (game->player == NULL) {
+    LOG_ERROR("Failed to create player");
+    GameDestroy(game);
+    return NULL;
+  }
 
+  LOG_DEBUG("Game is running");
   game->running = true;
 
   return game;
@@ -76,100 +82,99 @@ bool GameIsRunning(Game *game) {
   return game->running;
 }
 
-void GameHandleEvents(Game *game) {
+bool GameHandleEvents(Game *game) {
   assert(game != NULL);
 
-  bool window_resized = false;
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
     case SDL_EVENT_QUIT:
+      LOG_DEBUG("Game should quit");
       game->running = false;
-      break;
-
-    case SDL_EVENT_WINDOW_RESIZED:
-      window_resized = true;
       break;
 
     default:
       break;
     }
 
-    GameObjectEvent(game->player, &event);
-  }
-
-  if (window_resized) {
-    int width, height;
-    if (SDL_GetWindowSize(game->window, &width, &height)) {
-      LOG_DEBUG("Window resized (w: %d, h: %d)", width, height);
-    } else {
-      LOG_ERROR("Failed to get window size: %s", SDL_GetError());
+    if (!GameObjectEvent(game->player, &event)) {
+      LOG_ERROR("Failed to handle events for player");
+      return false;
     }
   }
+
+  return true;
 }
 
-void GameUpdate(Game *game) {
+bool GameUpdate(Game *game) {
   assert(game != NULL);
 
-  GameObjectUpdate(game->player);
+  if (!GameObjectUpdate(game->player)) {
+    LOG_ERROR("Failed to update player");
+    return false;
+  }
+
+  return true;
 }
 
-void GameRender(Game *game) {
+bool GameRender(Game *game) {
   assert(game != NULL);
 
   /* Set render target to texture */
   if (!SDL_SetRenderTarget(game->renderer, game->render_target)) {
     LOG_ERROR("Failed to set render target to texture: %s", SDL_GetError());
-    return;
+    return false;
   }
 
   /* Set render draw color to dark grey */
   if (!SDL_SetRenderDrawColor(game->renderer, 20, 20, 20, 255)) {
     LOG_ERROR("Failed to set draw color: %s", SDL_GetError());
-    return;
+    return false;
   }
 
   /* Clear texture render target */
   if (!SDL_RenderClear(game->renderer)) {
     LOG_ERROR("Failed to clear the current rendering target: %s",
               SDL_GetError());
-    return;
+    return false;
   }
 
   /* Draw to render target */
-  GameObjectDraw(game->player, game->texture_map, game->renderer);
+  if (!GameObjectDraw(game->player, game->texture_map, game->renderer)) {
+    LOG_ERROR("Failed to draw player");
+    return false;
+  }
 
   /* Set render target back to screen */
   if (!SDL_SetRenderTarget(game->renderer, NULL)) {
     LOG_ERROR("Failed to set render target to screen: %s", SDL_GetError());
-    return;
+    return false;
   }
 
   /* Set render draw color to black */
   if (!SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 255)) {
     LOG_ERROR("Failed to set draw color: %s", SDL_GetError());
-    return;
+    return false;
   }
 
   /* Clear screen render target */
   if (!SDL_RenderClear(game->renderer)) {
     LOG_ERROR("Failed to clear the current rendering target: %s",
               SDL_GetError());
-    return;
+    return false;
   }
 
   /* Get window size */
   int window_width, window_height;
   if (!SDL_GetWindowSizeInPixels(game->window, &window_width, &window_height)) {
     LOG_ERROR("Failed to get window size: %s", SDL_GetError());
-    return;
+    return false;
   }
 
   /* Compute scaling factor */
   const float scale_x = window_width / RENDER_TARGET_WIDTH;
   const float scale_y = window_height / RENDER_TARGET_HEIGHT;
   const float scale = MIN(scale_x, scale_y);
-  LOG_DEBUG("Scale: %.2f", scale);
 
   /* Compute centered view port */
   const float scaled_width = RENDER_TARGET_WIDTH * scale;
@@ -188,14 +193,16 @@ void GameRender(Game *game) {
   if (!SDL_RenderTexture(game->renderer, game->render_target, NULL,
                          &dst_rect)) {
     LOG_ERROR("Failed to render texture to screen: %s", SDL_GetError());
-    return;
+    return false;
   }
 
   /* Present final image */
   if (!SDL_RenderPresent(game->renderer)) {
     LOG_ERROR("Failed update screen with rendering: %s", SDL_GetError());
-    return;
+    return false;
   }
+
+  return true;
 }
 
 void GameDestroy(Game *game) {
