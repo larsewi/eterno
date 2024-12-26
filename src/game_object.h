@@ -21,15 +21,15 @@ typedef void (*GameObjectCallbackClean)(GameObject *game_object,
                                         TextureMap *texture_map);
 
 struct GameObject {
-  Vector position;
   Vector size;
+  Vector position;
+  Vector velocity;
   struct {
     GameObjectCallbackEvent event;
     GameObjectCallbackUpdate update;
     GameObjectCallbackDraw draw;
     GameObjectCallbackClean clean;
   } callback;
-  const char *texture_id;
 };
 
 static inline void GameObjectEvent(GameObject *game_object,

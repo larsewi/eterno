@@ -146,3 +146,21 @@ bool TextureMapDrawFrame(const TextureMap *texture_map, const char *texture_id,
 
   return success;
 }
+
+bool TextureMapGetTextureSize(const TextureMap *texture_map,
+                              const char *texture_id, float *width,
+                              float *height) {
+  assert(texture_map != NULL);
+  assert(texture_id != NULL);
+
+  const TextureMapEntry *map_entry = DictGet(texture_map, texture_id);
+  SDL_Texture *texture = map_entry->texture;
+
+  if (!SDL_GetTextureSize(texture, width, height)) {
+    LOG_ERROR("Failed to get size of texture '%s': %s", texture_id,
+              SDL_GetError());
+    return false;
+  }
+
+  return true;
+}

@@ -24,4 +24,8 @@ bool TextureMapDrawFrame(const TextureMap *texture_map, const char *texture_id,
                          float height, int column, int row, double angle,
                          Uint8 alpha, SDL_FlipMode flip);
 
+bool TextureMapGetTextureSize(const TextureMap *texture_map,
+                              const char *texture_id, float *width,
+                              float *height);
+
 #endif /* __ETERNO_TEXTURE_H__ */
